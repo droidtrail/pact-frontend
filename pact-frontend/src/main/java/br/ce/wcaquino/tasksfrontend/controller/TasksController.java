@@ -1,6 +1,5 @@
 package br.ce.wcaquino.tasksfrontend.controller;
 
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.client.RestTemplate;
 
 import br.ce.wcaquino.tasksfrontend.model.Todo;
+import br.ce.wcaquino.tasksfrontend.repositories.TasksRepository;
 
 @Controller
 public class TasksController {
@@ -23,13 +23,22 @@ public class TasksController {
 	@Value("${backend.port}")
 	private String BACKEND_PORT;
 	
+	private TasksRepository tasksRepo;
+	
+	public TasksRepository getTasksRepo() {
+		if(tasksRepo == null) {
+			tasksRepo = new TasksRepository("http://" + BACKEND_HOST + ":" + BACKEND_PORT);
+		}
+		return tasksRepo;
+	}
+	
 	public String getBackendURL() {
 		return "http://" + BACKEND_HOST + ":" + BACKEND_PORT;
 	}
 	
 	@GetMapping("")
 	public String index(Model model) {
-		model.addAttribute("todos", getTodos());
+		model.addAttribute("todos", getTasksRepo().getTodos());
 		return "index";
 	}
 	
@@ -42,12 +51,11 @@ public class TasksController {
 	@PostMapping("save")
 	public String save(Todo todo, Model model) {
 		try {
-			RestTemplate restTemplate = new RestTemplate();
 			if(todo.getId() == null) {
-				restTemplate.postForObject(
-						getBackendURL() + "/todo", todo, Object.class);				
+				getTasksRepo().save(todo);
+								
 			} else {
-				restTemplate.put(getBackendURL() + "/todo/" + todo.getId(), todo);
+				getTasksRepo().update(todo);
 			}
 			model.addAttribute("sucess", "Sucess!");
 			return "index";
@@ -59,36 +67,28 @@ public class TasksController {
 			model.addAttribute("todo", todo);
 			return "add"; 
 		} finally {
-			model.addAttribute("todos", getTodos());
+			model.addAttribute("todos",getTasksRepo().getTodos());
 		}
 	}
 	
 	@GetMapping("delete/{id}")
 	public String delete(@PathVariable Long id, Model model) {
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.delete(getBackendURL() + "/todo/" + id);			
+		getTasksRepo().delete(id);		
 		model.addAttribute("success", "Success!");
-		model.addAttribute("todos", getTodos());
+		model.addAttribute("todos",getTasksRepo().getTodos());
 		return "index";
 	}
 	
 	@GetMapping("edit/{id}")
 	public String edit(@PathVariable Long id, Model model) {
-		RestTemplate restTemplate = new RestTemplate();
-		Todo todo = restTemplate.getForObject(getBackendURL() + "/todo/" + id, Todo.class);
+		Todo todo = getTasksRepo().getTodo(id);
 		if(todo == null) {
 			model.addAttribute("error", "Invalid Task");
-			model.addAttribute("todos", getTodos());
+			model.addAttribute("todos", getTasksRepo().getTodos());
 			return "index";
 		}
 		model.addAttribute("todo", todo);
 		return "add";
 	}
 	
-	@SuppressWarnings("unchecked")
-	private List<Todo> getTodos() {
-		RestTemplate restTemplate = new RestTemplate();
-		return restTemplate.getForObject(
-				getBackendURL() + "/todo", List.class);
-	}
 }

@@ -13,7 +13,7 @@
 			<p class="lead">A very simple task management tool</p>
 		</div>
 		<p class="alert alert-success" role="alert" th:if="${success != null}" th:text="${success}" id="message" />
-		<div th:switch="${todos.size()}">
+		<div th:switch="${todos.length}">
 			<h2 th:case="0">No tasks... enjoy your day!</h2>
 			<div th:case="*">
 				<table id="todoTable" class="table table-hover">
