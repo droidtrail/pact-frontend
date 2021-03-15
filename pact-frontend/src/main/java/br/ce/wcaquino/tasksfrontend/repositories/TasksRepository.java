@@ -24,17 +24,17 @@ public class TasksRepository {
 	
 	public void update(Todo todo) {
 		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.put(url + "/todo"+ todo.getId(),todo);
+		restTemplate.put(url + "/todo/"+ todo.getId(),todo);
 	}
 	
 	public void delete(Long id) {
 		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.delete(url + "/todo"+ id);
+		restTemplate.delete(url + "/todo/"+ id);
 	}
 	
 	public Todo getTodo(Long id) {
 		RestTemplate restTemplate = new RestTemplate();
-		return restTemplate.getForObject(url + "/todo"+ id, Todo.class);
+		return restTemplate.getForObject(url + "/todo/"+ id, Todo.class);
 	}
 	
 }
